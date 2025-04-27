@@ -34,7 +34,7 @@ flowpulse/
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/flowpulse-sentinel.git
+   git clone https://github.com/shoaibsi/flowpulse-sentinel.git
    cd flowpulse-sentinel
    ```
 
