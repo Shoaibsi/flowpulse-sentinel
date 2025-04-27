@@ -1,0 +1,193 @@
+###Before deployment
+Test Real Telegram Alerts Verify that alerts are properly sent to Telegram using actual API keys from .env
+Verify API Key Configuration Ensure .env file has correct format and test connections to all external APIs.
+Test Data Pipeline Verify real API calls, data processing, and storage functionality.
+Test Model Integration Confirm LSTM and DeepSeek models load correctly with proper prompts.
+End-to-End Testing Run full test with real data and alerts, monitoring for errors.
+Documentation Update documentation with implementation details and configuration requirements.
+
+Current Step:
+
+### 1. LSTM Model Integration Problems
+
+**Solution for Hugging Face 404 Error:**
+```python
+from transformers import AutoModelForSequenceClassification
+
+try:
+    # Try loading from Hugging Face
+    model = AutoModelForSequenceClassification.from_pretrained("your-username/your-model-name")
+except Exception as e:
+    print(f"Hugging Face load failed: {e}")
+    try:
+        # Fallback to local model
+        from lstm_predictor import LSTMPredictor  # Ensure this module exists
+        model = LSTMPredictor.load_from_checkpoint("local_model.ckpt")
+    except Exception as e:
+        print(f"Local model load failed: {e}")
+        model = None
+```
+
+### 2. DeepSeek Model Issues
+
+**Solution for CPU Fallback:**
+```python
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
+import torch
+
+# Configure for CPU or limited GPU
+model_name = "deepseek-ai/deepseek-v3"  # or "microsoft/phi-2" as fallback
+
+try:
+    if torch.cuda.is_available():
+        # Try with 8-bit quantization
+        bnb_config = BitsAndBytesConfig(
+            load_in_8bit=True,
+            llm_int8_threshold=6.0
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            quantization_config=bnb_config,
+            device_map="auto"
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            device_map="cpu",
+            torch_dtype=torch.float32
+        )
+except Exception as e:
+    print(f"DeepSeek load failed: {e}, falling back to phi-2")
+    model = AutoModelForCausalLM.from_pretrained(
+        "microsoft/phi-2",
+        device_map="cpu",
+        torch_dtype=torch.float32
+    )
+```
+
+### 3. Data Fetching Problems
+
+**Solution for Cache Serialization:**
+```python
+import pandas as pd
+import json
+from io import StringIO
+
+def dataframe_to_json(df):
+    return json.loads(df.to_json(orient='records'))
+
+def json_to_dataframe(json_str):
+    return pd.read_json(StringIO(json.dumps(json_str)))
+
+# Usage:
+cache_data = dataframe_to_json(your_dataframe)
+# When retrieving:
+df = json_to_dataframe(cached_data)
+```
+
+**Solution for Polygon API Options:**
+```python
+from polygon import RESTClient
+
+def get_polygon_options_expirations(ticker):
+    client = RESTClient(api_key="YOUR_API_KEY")
+    try:
+        # Newer Polygon API syntax
+        expirations = client.list_options_contracts(
+            underlying_ticker=ticker,
+            contract_type='call',  # or 'put'
+            limit=1000
+        )
+        return [e.expiration_date for e in expirations]
+    except Exception as e:
+        print(f"Polygon error: {e}")
+        return None
+```
+
+**Solution for YFinance Options:**
+```python
+import yfinance as yf
+
+def get_yfinance_options(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+        expirations = stock.options
+        if not expirations:
+            return None
+            
+        options_data = {}
+        for expiry in expirations[:3]:  # Limit to nearest 3 expirations
+            chain = stock.option_chain(expiry)
+            options_data[expiry] = {
+                'calls': chain.calls.to_dict('records'),
+                'puts': chain.puts.to_dict('records')
+            }
+        return options_data
+    except Exception as e:
+        print(f"YFinance options error: {e}")
+        return None
+```
+
+### 4. Telegram Alert System
+
+**Correct Initialization:**
+```python
+from telegram import Bot
+from telegram.ext import Updater
+import asyncio
+
+TELEGRAM_TOKEN = "YOUR_BOT_TOKEN"
+CHAT_ID = "YOUR_CHAT_ID"
+
+async def initialize_bot():
+    try:
+        bot = Bot(token=TELEGRAM_TOKEN)
+        me = await bot.get_me()
+        print(f"Telegram bot initialized: @{me.username}")
+        return bot
+    except Exception as e:
+        print(f"Telegram init error: {e}")
+        return None
+
+# For synchronous contexts:
+def sync_initialize():
+    return asyncio.run(initialize_bot())
+
+def send_telegram_alert(message):
+    bot = sync_initialize()
+    if bot:
+        try:
+            asyncio.run(bot.send_message(chat_id=CHAT_ID, text=message))
+        except Exception as e:
+            print(f"Telegram send error: {e}")
+```
+
+### Implementation Roadmap:
+
+1. **First Priority**:
+   - Fix the data pipeline (Polygon/YFinance options)
+   - Implement proper caching with DataFrame serialization
+
+2. **Second Priority**:
+   - Stabilize Telegram alerts
+   - Implement proper error handling for notifications
+
+3. **Third Priority**:
+   - Resolve LSTM model loading
+   - Improve DeepSeek integration with proper fallbacks
+
+4. **Monitoring**:
+   - Add logging throughout the system
+   ```python
+   import logging
+   logging.basicConfig(
+       level=logging.INFO,
+       format='%(asctime)s - %(levelname)s - %(message)s',
+       handlers=[
+           logging.FileHandler('bot.log'),
+           logging.StreamHandler()
+       ]
+   )
+   ```
+
+Would you like me to elaborate on any specific part of these solutions or see the relevant portions of your code that are causing these issues? Seeing your actual implementation might help provide more targeted fixes.

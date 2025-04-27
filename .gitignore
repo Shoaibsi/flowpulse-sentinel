@@ -1,0 +1,42 @@
+# Environment variables
+.env
+.env.example
+
+# Logs and database
+logs/
+*.log
+flowpulse.db*
+
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Cache
+.cache/
+.pytest_cache/
+
+# Tests
+test_*.py
+flowpulse/tests/
+run_tests.py 
+
+# Documentation and internal files
+docs/
+PRD
+Implentationsteps
+basedesign.yaml
+tavily_mcp_server.js
+tavily_search.js
+
+# Models
+*.pt
+models/
+flowpulse/models/
+
+# IDE / OS specific (optional but good practice)
+.vscode/
+.idea/
+*.DS_Store
