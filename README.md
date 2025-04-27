@@ -1,12 +1,16 @@
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Shoaibsi/flowpulse-sentinel/python-app.yml?branch=main)](https://github.com/Shoaibsi/flowpulse-sentinel/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
+
 # FlowPulse Sentinel
 
-An AI-powered trading bot that analyzes unusual options flow and generates trading insights using Temporal Fusion Transformer (TFT) price prediction and DeepSeek-V3 AI analysis.
+An AI-powered trading bot that analyzes unusual options flow and generates trading insights using Temporal Fusion Transformer (TFT) price prediction and Gemini AI analysis.
 
 ## Features
 
 - **TFT Price Prediction**: Uses 30-day OHLCV windows with advanced temporal modeling for accurate price forecasts
 - **Options Flow Analysis**: Detects unusual options activity based on volume/open interest ratios
-- **DeepSeek-V3 Integration**: Generates professional trading analysis and recommendations
+- **Gemini AI Integration**: Generates professional trading analysis and recommendations
 - **Real-time Alerts**: Sends formatted alerts via Telegram with priority-based filtering
 - **Multiple Data Sources**: Primary data from TastyTrade API with Polygon and YFinance fallbacks
 - **In-memory Database**: DuckDB for efficient data storage and querying
@@ -20,7 +24,7 @@ flowpulse/
 │   ├── data_fetcher.py     # TastyTrade/Polygon/YFinance
 │   ├── tft_predictor.py    # TFT model
 │   ├── alert_manager.py    # Telegram alerts
-│   └── analysis.py         # DeepSeek integration
+│   └── analysis.py         # Gemini integration
 ├── config.py               # API keys
 ├── models/                 # Store TFT model
 └── tests/                  # Unit tests
@@ -97,7 +101,7 @@ Alerts are sent via Telegram in the following format:
    - Advanced temporal modeling for accurate predictions
    - Fallback to technical indicators if model fails
 
-2. **DeepSeek Prompts**
+2. **Gemini Prompts**
    - Specialized templates for different scenarios:
      - Standard analysis
      - Gamma squeeze detection
